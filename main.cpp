@@ -73,6 +73,7 @@ public:
 
     void bookTicket(shared_ptr<Ticket>& ticket) {
         booked.push_back(ticket);
+        cout << "Confirmed with id " << booked.size() << endl;
     }
 
     void refundTicket(const int& id) {
@@ -81,6 +82,31 @@ public:
             planes[make_pair(ticket->date, ticket->flight)]->refundTicket(ticket->row, ticket->seat);
             booked[id - 1] = nullptr;
             cout << "Confirmed refund for id " << id << endl;
+        }
+    }
+
+    void view(const int& id) {
+        shared_ptr<Ticket> ticket = booked[id - 1];
+        if (ticket == nullptr) {
+            cout << "Sorry, no ticket by this id has been found :(" << endl;;
+            return;
+        }
+        cout << ticket->date << " " << ticket->flight << " " << ticket->row << ticket->seat << " " << ticket->userName << endl;
+    }
+
+    void view(const string& userName) {
+        for (const shared_ptr<Ticket>& ticket : booked) {
+            if (ticket->userName == userName) {
+                cout << ticket->flight << " " << ticket ->date << " " << ticket-> row << ticket -> seat << endl;
+            }
+        }
+    }
+
+    void view(const string& date, const string& flight) {
+        for (const shared_ptr<Ticket>& ticket : booked) {
+            if (ticket->date == date && ticket->flight == flight) {
+                cout << ticket-> row << ticket -> seat << " " << ticket ->userName << endl;
+            }
         }
     }
 };
@@ -146,7 +172,6 @@ public:
 };
 
 class Helper {
-    //unordered_map<string, vector<long>> userIds;
     Airport airport;
     long id;
 public:
@@ -183,6 +208,18 @@ public:
         airport.refundTicket(id);
     }
 
+    void view(const int& id) {
+        airport.view(id);
+    }
+
+    void view(const string& userName) {
+        airport.view(userName);
+    }
+
+    void view(const string& date, const string& flight) {
+        airport.view(date, flight);
+    }
+
 };
 
 int main()
@@ -194,7 +231,12 @@ int main()
     //helper.check("01.03.2023", "TI678");
     helper.book("01.03.2023", "TI678", "1A", "Alla");
     helper.book("01.03.2023", "TI678", "2B", "Oliver");
-    helper.refund(1);
-    cout << "Hello, World!" << endl;
+    helper.book("17.03.2023", "ZV456", "12C", "Alla");
+    // helper.refund(1);
+    // helper.view(2);
+    // helper.view(1);
+    // helper.view(3);
+    helper.view("Alla");
+    helper.view("01.03.2023", "TI678");
     return 0;
 }
