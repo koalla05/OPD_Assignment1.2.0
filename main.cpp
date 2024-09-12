@@ -21,22 +21,28 @@ class Airplane {
     const int numSeat;
     const int maxRow;
     vector<bool> places;
-    const map<int, string>& pricing;
+    shared_ptr<const map<int, string>> pricing;
 
 public:
-    Airplane(const int& inNumSeat, const int& inMaxRow, const map<int, string>& inPricing): numSeat(inNumSeat), maxRow(inMaxRow), pricing(inPricing) {
+    Airplane(const int& inNumSeat, const int& inMaxRow, const shared_ptr<map<int, string>> &inPricing): numSeat(inNumSeat), maxRow(inMaxRow), pricing(inPricing) {
         places.resize(maxRow * numSeat, true);
+    }
+
+    string getPrice(const int &row) const {
+        string price = pricing->lower_bound(row)->second;
+        return price;
     }
 
     void check() {
         for (int i = 0; i < maxRow * numSeat; ++i) {
             if (places[i]) {
-                cout << i / numSeat + 1 << static_cast<char>(i % numSeat + 'A') << endl;
+                string price = getPrice(i / numSeat + 1);
+                cout << i / numSeat + 1 << static_cast<char>(i % numSeat + 'A') << " " << price << endl;
             }
         }
     }
 
-    shared_ptr<Ticket> book(const string& flight, const string& date, const string &seat, const string& userName, const int id) {
+    shared_ptr<Ticket> book(const string& flight, const string& date, const string &seat, const string& userName) {
         shared_ptr<Ticket> ticket;
         char place = seat.back();
         int row = stoi(seat.substr(0, seat.size() - 1));
@@ -46,12 +52,17 @@ public:
             ticket = make_shared<Ticket>(flight, date, row, place, userName);
             return ticket;
         }
-        return ticket;
+        else {
+            cout << "Sorry, this place is already booked, try again." << endl;
+            return ticket;
+        }
     }
 
-    void refundTicket(const int& row, const char&  place) {
+    string refundTicket(const int& row, const char&  place) {
+        string price = getPrice(row);
         int index = row * numSeat - 'A' + place - numSeat;
         places[index] = true;
+        return price;
     }
 };
 
@@ -67,47 +78,63 @@ class Airport {
 public:
     vector<shared_ptr<Ticket>> booked = {};
     unordered_map<pair<string, string>, shared_ptr<Airplane>, pair_hash> planes;
+
     void addPlane(shared_ptr<Airplane> plane, const string& inDate, const string& inFlight) {
         planes[make_pair(inDate, inFlight)] = std::move(plane);
     }
 
-    void bookTicket(shared_ptr<Ticket>& ticket) {
+    void bookTicket(const shared_ptr<Ticket>& ticket) {
         booked.push_back(ticket);
         cout << "Confirmed with id " << booked.size() << endl;
     }
 
     void refundTicket(const int& id) {
-        shared_ptr<Ticket> ticket = booked[id - 1];
-        if (ticket != nullptr) {
-            planes[make_pair(ticket->date, ticket->flight)]->refundTicket(ticket->row, ticket->seat);
-            booked[id - 1] = nullptr;
-            cout << "Confirmed refund for id " << id << endl;
-        }
-    }
-
-    void view(const int& id) {
-        shared_ptr<Ticket> ticket = booked[id - 1];
-        if (ticket == nullptr) {
-            cout << "Sorry, no ticket by this id has been found :(" << endl;;
+        if (id > booked.size() || id < 0) {
+            cout << "Sorry, we couldn't have found a booked ticket with such an ID" <<endl;
             return;
         }
-        cout << ticket->date << " " << ticket->flight << " " << ticket->row << ticket->seat << " " << ticket->userName << endl;
+        shared_ptr<Ticket> ticket = booked[id - 1];
+        if (ticket) {
+            string price = planes[make_pair(ticket->date, ticket->flight)]->refundTicket(ticket->row, ticket->seat);
+            cout << "Confirmed refund "<< price << " for " << ticket->userName << endl;
+            booked[id - 1] = nullptr;
+        }
+        else {
+            cout << "Sorry, seems like you already have refund" <<endl;
+        }
     }
 
-    void view(const string& userName) {
+    shared_ptr<Ticket> view(const int& id) const {
+        if (id > booked.size() || id < 0) {
+            cout << "Sorry, we couldn't have found a booked ticket with such an ID" <<endl;
+            return nullptr;
+        }
+        shared_ptr<Ticket> ticket = booked[id - 1];
+        if (!ticket) {
+            cout << "Sorry, no ticket by this id has been found :(" << endl;;
+            return nullptr;
+        }
+        return ticket;
+    }
+
+    vector<shared_ptr<Ticket>> view(const string& userName) {
+        vector<shared_ptr<Ticket>> tickets;
         for (const shared_ptr<Ticket>& ticket : booked) {
             if (ticket->userName == userName) {
-                cout << ticket->flight << " " << ticket ->date << " " << ticket-> row << ticket -> seat << endl;
+                tickets.push_back(ticket);
             }
         }
+        return tickets;
     }
 
-    void view(const string& date, const string& flight) {
+    vector<shared_ptr<Ticket>> view(const string& date, const string& flight) {
+        vector<shared_ptr<Ticket>> tickets;
         for (const shared_ptr<Ticket>& ticket : booked) {
             if (ticket->date == date && ticket->flight == flight) {
-                cout << ticket-> row << ticket -> seat << " " << ticket ->userName << endl;
+                tickets.push_back(ticket);
             }
         }
+        return tickets;
     }
 };
 
@@ -119,7 +146,6 @@ class FileReader {
     int numRow;
     string price, seats;
     string endSeat;
-    map<int, string> pricing;
     Airport& airport;
 
 public:
@@ -140,7 +166,7 @@ public:
         // Process each line in the file
         while (getline(inputFile, line)) {
             istringstream iss(line);
-            pricing.clear(); // Clear the map for each new flight entry
+            map<int, string> pricing;
 
             if (!(iss >> date >> flightNo >> numSeat)) {
                 cerr << "Error reading date, flightNo, or numSeat from line: " << line << endl;
@@ -162,8 +188,8 @@ public:
             }
 
             if (!pricing.empty()) {
-                shared_ptr<Airplane> plane = make_shared<Airplane>(numSeat, stoi(endSeat), pricing);
-                airport.addPlane(plane, date, flightNo );
+                shared_ptr<Airplane> plane = make_shared<Airplane>(numSeat, stoi(endSeat), make_shared<map<int, string>>(pricing));
+                airport.addPlane(plane, date, flightNo);
             }
         }
 
@@ -176,6 +202,16 @@ class Helper {
     long id;
 public:
     Helper (Airport& myAirport): airport(myAirport), id(1){}
+
+    string getRowPrice(const string& date, const string& flight, const int& row) {
+        for (const auto& pair : airport.planes) {
+            const auto& key = pair.first;
+            shared_ptr<Airplane> airplane = pair.second;
+            if (key.first == date && key.second == flight) {
+                return airplane->getPrice(row);
+            }
+        }
+    }
 
     void check(const string& date, const string& flight) {
         bool found = false;
@@ -193,14 +229,13 @@ public:
 
     void book(const string& date, const string& flight, const string& place, const string& userName) {
         auto plane = airport.planes[make_pair(date, flight)];
-        if (plane==NULL)
+        if (plane== nullptr)
             cout << "Sorry, no airplane in this day with this flight number to book a ticket :(" << endl;
         else {
-            shared_ptr<Ticket> ticket = plane->book(flight, date, place, userName, id);
+            const shared_ptr<Ticket> ticket = plane->book(flight, date, place, userName);
             if (ticket != nullptr) {
                 airport.bookTicket(ticket);
             }
-            id++;
         }
     }
 
@@ -209,15 +244,34 @@ public:
     }
 
     void view(const int& id) {
-        airport.view(id);
+        const shared_ptr<Ticket> ticket = airport.view(id);
+        const string price = getRowPrice(ticket->date, ticket->flight, ticket->row);
+        cout << ticket->date << " " << ticket->flight << " " << ticket->row << ticket->seat << " " << price << " " << ticket->userName << endl;
     }
 
     void view(const string& userName) {
-        airport.view(userName);
+        vector<shared_ptr<Ticket>> tickets = airport.view(userName);
+        if (tickets.empty()) {
+            cout << "Sorry, no one with such a name has booked a ticket" << endl;
+            return;
+        }
+        for (auto& ticket: tickets) {
+            const string price = getRowPrice(ticket->date, ticket->flight, ticket->row);
+            cout << ticket->flight << " " << ticket ->date << " " << ticket-> row << ticket -> seat << " " << price << endl;
+        }
     }
 
     void view(const string& date, const string& flight) {
-        airport.view(date, flight);
+        vector<shared_ptr<Ticket>> tickets = airport.view(date, flight);
+        if (tickets.empty()) {
+            cout << "Sorry, no planes in that day and with that flight number" << endl;
+            return;
+        }
+        for (auto& ticket: tickets) {
+            const string price = getRowPrice(ticket->date, ticket->flight, ticket->row);
+            cout << ticket-> row << ticket -> seat << " " << ticket ->userName << " " << price  << endl;
+        }
+
     }
 
 };
@@ -230,13 +284,24 @@ int main()
     Helper helper(myAirport);
     //helper.check("01.03.2023", "TI678");
     helper.book("01.03.2023", "TI678", "1A", "Alla");
-    helper.book("01.03.2023", "TI678", "2B", "Oliver");
-    helper.book("17.03.2023", "ZV456", "12C", "Alla");
+    helper.book("01.03.2023", "TI678", "2A", "Alla");
+
+    //helper.book("01.03.2023", "TI678", "1A", "Alla");
+    //helper.check("01.03.2023", "TI678");
+    // helper.book("01.03.2023", "TI678", "2B", "Oliver");
+    // helper.book("17.03.2023", "ZV456", "12C", "Alla");
     // helper.refund(1);
-    // helper.view(2);
+    // helper.refund(1);
+    // helper.refund(3);
+    // helper.book("01.03.2023", "TI678", "1A", "Oliver");
+    //
+    //helper.view(2);
+    //helper.view(1);
+    // helper.refund(1);
     // helper.view(1);
+
     // helper.view(3);
-    helper.view("Alla");
-    helper.view("01.03.2023", "TI678");
+    //helper.view("All");
+    helper.view("01.03.203", "TI678");
     return 0;
 }
