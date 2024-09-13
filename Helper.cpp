@@ -4,7 +4,7 @@
 #include "Airport.h"
 #include "Ticket.h"
 
-Helper::Helper (Airport& myAirport): airport(myAirport), id(1){}
+Helper::Helper (Airport& myAirport): airport(myAirport){}
 
 string Helper::getRowPrice(const string& date, const string& flight, const int& row) {
     for (const auto& pair : airport.planes) {

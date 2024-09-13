@@ -1,8 +1,7 @@
-#include <fstream>
+#include <string>
 #include "Airport.h"
 #include "FileReader.h"
 #include "Helper.h"
-using namespace std;
 
 int main()
 {
@@ -24,9 +23,9 @@ int main()
     helper.book("01.03.2023", "TI678", "1A", "Alla");
 
     helper.view(2);
-     helper.view(1);
-     helper.refund(1);
-     helper.view(1);
+    helper.view(1);
+    helper.refund(1);
+    helper.view(1);
 
     helper.view("All");
     helper.view("Alla");

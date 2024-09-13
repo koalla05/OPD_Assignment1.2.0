@@ -4,7 +4,6 @@
 
 class Helper {
     Airport airport;
-    long id;
 public:
     Helper (Airport& myAirport);
 
