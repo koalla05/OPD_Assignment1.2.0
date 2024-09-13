@@ -4,6 +4,7 @@
 #include <vector>
 #include "Ticket.h"
 #include "Airplane.h"
+
 using namespace std;
 
 Airplane::Airplane(const int& inNumSeat, const int& inMaxRow, const shared_ptr<map<int, string>> &inPricing): numSeat(inNumSeat), maxRow(inMaxRow), pricing(inPricing) {

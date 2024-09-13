@@ -4,6 +4,7 @@
 #include <vector>
 #include "Airplane.h"
 #include "Ticket.h"
+
 using namespace std;
 
 struct pair_hash {
@@ -15,8 +16,9 @@ struct pair_hash {
 };
 
 class Airport {
-public:
     vector<shared_ptr<Ticket>> booked = {};
+
+public:
     unordered_map<pair<string, string>, shared_ptr<Airplane>, pair_hash> planes;
 
     void addPlane(shared_ptr<Airplane> plane, const string& inDate, const string& inFlight);

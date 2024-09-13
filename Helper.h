@@ -5,9 +5,9 @@
 class Helper {
     Airport airport;
 public:
-    Helper (Airport& myAirport);
+    Helper (const Airport& myAirport);
 
-    string getRowPrice(const string& date, const string& flight, const int& row);
+    string getRowPrice(const string& date, const string& flight, const int& row) const;
 
     void check(const string& date, const string& flight) const;
 

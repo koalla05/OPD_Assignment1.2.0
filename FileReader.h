@@ -1,13 +1,13 @@
 #pragma once
 #include "Airport.h"
-#include "Airplane.h"
+#include <string>
 
 class FileReader {
-    string path = "C:/Users/kovko/CLionProjects/OPD_Assignment1.2.0/config.txt";
+    std::wstring path;
     Airport& airport;
 
 public:
-    FileReader(Airport& inAirport);
+    FileReader(Airport& inAirport, const std::wstring& filePath);
 
     void read();
 };

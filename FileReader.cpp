@@ -1,44 +1,48 @@
-#include "Airport.h"
-#include "Airplane.h"
 #include "FileReader.h"
-#include <fstream>
 #include <iostream>
 #include <sstream>
+#include <map>
+#include "FileHandle.h"
 
-#include <iostream>
-FileReader::FileReader(Airport& inAirport): airport(inAirport) {
+FileReader::FileReader(Airport& inAirport, const std::wstring& filePath)
+    : airport(inAirport), path(filePath) {
 }
 
 void FileReader::read() {
-    ifstream inputFile(path);
 
-    if (!inputFile) {
-        cerr << "No file has been found: " << path << endl;
-        return;
+    FileHandle fileHandle(path);
+
+    HANDLE hFile = fileHandle.get();
+    DWORD fileSize = GetFileSize(hFile, nullptr);
+    if (fileSize == INVALID_FILE_SIZE) {
+        throw std::runtime_error("Failed to get file size.");
     }
 
-    string line;
-    istringstream iss(line);
+    std::string fileContent(fileSize, '\0');
+    DWORD bytesRead;
+    if (!ReadFile(hFile, &fileContent[0], fileSize, &bytesRead, nullptr)) {
+        throw std::runtime_error("Failed to read file.");
+    }
+
+    std::istringstream inputFile(fileContent);
+    std::string line;
     getline(inputFile, line);
 
-    while (getline(inputFile, line)) {
-        istringstream iss(line);
-        map<int, string> pricing;
-        string date;
-        string flightNo;
-        int numSeat;
-        string seats;
-        string price;
-        string endSeat;
+    while (std::getline(inputFile, line)) {
+        std::istringstream iss(line);
+        std::map<int, std::string> pricing;
+
+        std::string date, flightNo, seats, price, endSeat;
+        int numSeat = 0;
 
         if (!(iss >> date >> flightNo >> numSeat)) {
-            cout << "Error reading date, flightNo, or numSeat from line: " << line << endl;
-            exit(0);
+            std::cout << "Error reading date, flightNo, or numSeat from line: " << line << std::endl;
+            continue;
         }
 
         while (iss >> seats >> price) {
             size_t dashPos = seats.find('-');
-            if (dashPos == string::npos || dashPos==0) {
+            if (dashPos == string::npos || dashPos == 0 || dashPos == seats.size()-1) {
                 cout << "Invalid seat range format in line: " << line << endl;
                 exit(0);
             }
@@ -47,8 +51,7 @@ void FileReader::read() {
                 exit(0);
             }
             endSeat = seats.substr(dashPos + 1);
-
-            int endSeatNumber = stoi(endSeat);
+            int endSeatNumber = std::stoi(endSeat);
             pricing[endSeatNumber] = price;
             seats = "";
             price = "";
@@ -57,12 +60,11 @@ void FileReader::read() {
             cout << "Invalid format in line: " << line << endl;
             exit(0);
         }
+
         if (!pricing.empty()) {
-            shared_ptr<Airplane> plane = make_shared<Airplane>(numSeat, stoi(endSeat), make_shared<map<int, string>>(pricing));
+            auto plane = std::make_shared<Airplane>(numSeat, std::stoi(endSeat), std::make_shared<std::map<int, std::string>>(pricing));
             airport.addPlane(plane, date, flightNo);
         }
-        else exit(0);
     }
 
-    inputFile.close();
 }

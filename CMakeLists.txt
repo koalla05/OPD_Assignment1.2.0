@@ -14,4 +14,6 @@ add_executable(OPD_Assignment1_2_0 main.cpp
         FileReader.cpp
         Helper.h
         Helper.cpp
+        FileHandle.h
+        FileHandle.h
 )

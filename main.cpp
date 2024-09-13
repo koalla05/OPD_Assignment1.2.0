@@ -6,8 +6,9 @@
 int main()
 {
     Airport myAirport;
-    FileReader file(myAirport);
-    file.read();
+    std::wstring filePath = L"C:/Users/kovko/CLionProjects/OPD_Assignment1.2.0/config.txt";
+    FileReader fileReader(myAirport, filePath);
+    fileReader.read();
     Helper helper(myAirport);
 
     helper.check("01.03.2023", "TI678");
@@ -17,6 +18,7 @@ int main()
     helper.book("01.03.2023", "TI678", "1A", "Alla");
     helper.check("01.03.2023", "TI678");
     helper.check("07.03.2023", "PA345");
+    helper.book("07.03.2023", "PA345", "1A", "JK");
     helper.book("01.03.2023", "TI678", "2B", "Oliver");
     helper.refund(1);
     helper.refund(4);

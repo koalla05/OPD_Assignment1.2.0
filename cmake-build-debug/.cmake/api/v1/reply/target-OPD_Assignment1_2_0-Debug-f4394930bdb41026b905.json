@@ -108,7 +108,8 @@
 				3,
 				4,
 				6,
-				8
+				8,
+				10
 			]
 		}
 	],
@@ -168,6 +169,11 @@
 			"compileGroupIndex" : 0,
 			"path" : "Helper.cpp",
 			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "FileHandle.h",
+			"sourceGroupIndex" : 1
 		}
 	],
 	"type" : "EXECUTABLE"

@@ -8,8 +8,8 @@
 #include "Airport.h"
 #include <unordered_map>
 #include <vector>
-using namespace std;
 
+using namespace std;
 
 void Airport::addPlane(shared_ptr<Airplane> plane, const string& inDate, const string& inFlight) {
     planes[make_pair(inDate, inFlight)] = std::move(plane);
