@@ -23,7 +23,7 @@ public:
 
     void addPlane(shared_ptr<Airplane> plane, const string& inDate, const string& inFlight);
 
-    void bookTicket(const shared_ptr<Ticket>& ticket);
+    void bookTicket(const shared_ptr<Ticket> ticket);
 
     void refundTicket(const int& id);
 

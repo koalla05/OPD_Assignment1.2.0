@@ -15,7 +15,7 @@ void Airport::addPlane(shared_ptr<Airplane> plane, const string& inDate, const s
     planes[make_pair(inDate, inFlight)] = std::move(plane);
 }
 
-void Airport::bookTicket(const shared_ptr<Ticket>& ticket) {
+void Airport::bookTicket(const shared_ptr<Ticket> ticket) {
     booked.push_back(ticket);
     cout << "Confirmed with id " << booked.size() << endl;
 }

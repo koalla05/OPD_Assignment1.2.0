@@ -17,7 +17,7 @@ string Helper::getRowPrice(const string& date, const string& flight, const int& 
     return "";
 }
 
-void Helper::check(const string& date, const string& flight) const {
+void Helper::check(const string date, const string flight) const {
     bool found = false;
     for (const auto& pair : airport.planes) {
         const auto& key = pair.first;
@@ -31,7 +31,7 @@ void Helper::check(const string& date, const string& flight) const {
         cout << "Sorry, no airplane in this day with this flight number :(" << endl;
 }
 
-void Helper::book(const string& date, const string& flight, const string& place, const string& userName) {
+void Helper::book(const string date, const string flight, const string place, const string userName) {
     auto plane = airport.planes[make_pair(date, flight)];
     if (plane== nullptr)
         cout << "Sorry, no airplane in this day with this flight number to book a ticket :(" << endl;
@@ -42,18 +42,18 @@ void Helper::book(const string& date, const string& flight, const string& place,
     }
 }
 
-void Helper::refund(const int& id) {
+void Helper::refund(const int id) {
     airport.refundTicket(id);
 }
 
-void Helper::view(const int& id) {
+void Helper::view(const int id) {
     if (const shared_ptr<Ticket> ticket = airport.view(id)) {
         const string price = getRowPrice(ticket->date, ticket->flight, ticket->row);
         cout << ticket->date << " " << ticket->flight << " " << ticket->row << ticket->seat << " " << price << " " << ticket->userName << endl;
     }
 }
 
-void Helper::view(const string& userName) {
+void Helper::view(const string userName) {
     const vector<shared_ptr<Ticket>> tickets = airport.view(userName);
     if (tickets.empty()) {
         cout << "Sorry, no one with such a name has booked a ticket" << endl;
@@ -65,7 +65,7 @@ void Helper::view(const string& userName) {
     }
 }
 
-void Helper::view(const string& date, const string& flight) {
+void Helper::view(const string date, const string flight) {
     const vector<shared_ptr<Ticket>> tickets = airport.view(date, flight);
     if (tickets.empty()) {
         cout << "Sorry, no tickets for that day and that flight number" << endl;
